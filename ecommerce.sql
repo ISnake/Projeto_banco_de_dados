@@ -3,8 +3,9 @@
 create database ecommerce;
 use ecommerce;
 
--- criar tabela cliente
+-- drop database ecommerce;
 
+-- criar tabela cliente
 create table clients(
 	idClient INT PRIMARY KEY AUTO_INCREMENT,
 	Fnome VARCHAR(10),
@@ -15,17 +16,17 @@ create table clients(
     CONSTRAINT unique_cpf_client UNIQUE (CPF)
 );
 
+alter table clients auto_increment=1;
+
 -- criar tabela produto
 -- size: dimensão do produto
-
 create table product(
 	idProduct INT PRIMARY KEY AUTO_INCREMENT,
 	Fnome VARCHAR(20) not null,
     classification_kids bool default false,
     category enum('Edredom','Coberdrom', 'Mantas', 'Jogo de lençol', 'Cortinas', 'Toalhas') not null,
     avaliação FLOAT default 0,
-    size VARCHAR(10),
-    CONSTRAINT unique_cpf_client UNIQUE (CPF)
+    size VARCHAR(10)
 );
 
 -- Desafio: implementara tabela pagamento e crie a conexão com as tabelas necessárias.
@@ -43,20 +44,21 @@ create table orders(
     paymentCash bool default false,
     idPayment int,
     constraint fk_orders_client foreign key (idOrdersClient) references clients(idClient) 
+		on update cascade
 );
+-- desc payment;
 
 -- criar tabela Pagamento
-
 create table payment(
-	idPayment int auto_increment,
+	idPayment int,
     idPaymentOrders int,
-    idClient int,
+    idPayClient int,
     typePayment enum('Cartão','Pix', 'PagSeguro'),
     period_buy datetime,
     limitAvailable float,
-    primary key (idClient, idPayment),
-    constraint fk_pedido foreign key (idPaymentOrders) references orders(idOrders),
-    constraint fk_client foreign key (idClient) references clients(idClient)
+    primary key (idPaymentOrders, idPayClient),
+    constraint fk_order_pay foreign key (idPaymentOrders) references orders(idOrders),
+    constraint fk_pay_client foreign key (idPayClient) references clients(idClient)
 );
 
 -- criar tabela Estoque
@@ -90,18 +92,44 @@ create table seller(
 
 -- criar tabela Disponibilizando um produto
 create table productHave (
-	productIdProduct int,
-    stockIdStock int,
-    constraint fk_productSeller foreign key (productIdProduct) references product (idProduct)
+	idProductHave int,
+    idProductSupplier int,
+    quantity int not null,
+    primary key (idProductHave, idProductSupplier),
+    constraint fk_productSeller foreign key (idProductHave) references product (idProduct),
+    constraint fk_supplier foreign key (idProductSupplier) references supplier (idSupplier)
 );
 
 -- criar tabela Produtos por vendedor
 create table productsSeller (
 	idProductSeller int,
-    idProduct int,
+    idPproduct int,
     quantity int default 1,
-    primary key (idProductSeller, idSeller),
+    primary key (idProductSeller, idPproduct),
     constraint fk_product_seller foreign key (idProductSeller) references seller(idSeller),
-    constraint fk_product_product foreign key (idProduct) references product(idProduct)
+    constraint fk_product_product foreign key (idPproduct) references product(idProduct)
+
+);
+
+-- criar tabela produto/pedido
+create table productOrder (
+	idPOProduct int,
+	idProductOrder int,
+    quantity int default 1,
+    status enum('Disponível', 'sem Estoque') default 'Disponível',
+    primary key (idPOproduct, idProductOrder),
+    constraint fk_product foreign key (idPOProduct) references product(idProduct),
+    constraint fk_producy_order foreign key (idProductOrder) references orders(idOrders)
+);
+
+-- criar tabela Em Estoque
+create table inStock (
+	idStockProduct int,
+    idProductProduct int,
+    primary key (idStockProduct, idProductProduct),
+    constraint fk_stock_product foreign key (idStockProduct) references stock (idStock),
+    constraint fk_products_products foreign key (idProductProduct) references product (idProduct)
     
 );
+
+show tables;
